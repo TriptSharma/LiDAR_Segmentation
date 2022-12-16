@@ -4,7 +4,7 @@ Build a map from raw LIDAR point cloud and then transfer the predicted semantic 
 
 ## How to run
 
-```python3 main.py```
+```python3 Wrapper.py```
 
 
 ## Data
