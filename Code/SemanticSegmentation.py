@@ -6,9 +6,7 @@ import os
 import torch
 import cv2
 from torchvision import transforms
-import torchvision
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 
