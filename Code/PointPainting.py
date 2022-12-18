@@ -3,9 +3,10 @@
 # Merge Pointclouds using ICP
 import numpy as np
 import open3d as o3d 
-from SemanticSegmentation import *
-from ICP import *
+import cv2
 
+def cam_calib(filename):
+    
 
 def P_matrix_lidar_to_cam(filename):
     '''
@@ -115,11 +116,14 @@ def pointPainting(projection_matrix_lidar_to_cam, point_cloud, rgb_img, segmente
 
         semantic_color[i] = segmented_img[y,x]/255
         
-        # pt = (y,x)
-        # cv2.circle(fused_img, pt, 2, color=tuple(semantic_color[i]), thickness=1)
+        pt = (x,y)
+        cv2.circle(fused_img, pt, 5, color=tuple(map(int, segmented_img[y,x])), thickness=-1)        
+    stacked_img = np.vstack((fused_img, segmented_img, rgb_img))
 
-        
-    # stacked_img = np.vstack((rgb_img, segmented_img, fused_img))
+    cv2.imshow('fuse', stacked_img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
     # cv2.imwrite(fused_img_filename,stacked_img)
 
     painted_pointcloud = np.hstack((pts_3D_img[:,:3], semantic_color))
@@ -151,37 +155,9 @@ def visuallize_pointcloud(pointcloud, filename):
     
         pcd.points = o3d.utility.Vector3dVector(xyz)
         pcd.colors = o3d.utility.Vector3dVector(colors)
-        # o3d.visualization.draw_geometries([pcd])
+        o3d.visualization.draw_geometries([pcd])
         o3d.io.write_point_cloud(filename,pcd)
-
 
 
 # model = torchvision.models.segmentation.fcn_resnet101()
 # model.eval()
-
-
-CALIB_DATA_DIR = 'KITTI-360/KITTI-Small/2011_09_26/'
-PCD_DATA_DIR = 'KITTI-360/KITTI-Small/2011_09_26/2011_09_26_drive_0001_sync/velodyne_points/data/'
-RGB_DATA_DIR = 'KITTI-360/KITTI-Small/2011_09_26/2011_09_26_drive_0001_sync/image_02/data/'
-SEGMENTED_DATA_DIR = 'KITTI-360/KITTI-Small/2011_09_26/2011_09_26_drive_0001_sync/image_02/segmented_image_02/'
-SAVE_DIR = 'results/'
-
-projection_matrix = P_matrix_lidar_to_cam(CALIB_DATA_DIR+'calib_velo_to_cam.txt')     # size (3,4)
-# print(projection_matrix)
-
-pcds = get_pcds_np(PCD_DATA_DIR)
-
-rgb_paths = get_img_paths(RGB_DATA_DIR)
-seg_paths = get_img_paths(SEGMENTED_DATA_DIR)
-
-
-for point_cloud, rgb_img_path, seg_img_path in zip(pcds, rgb_paths, seg_paths):
-    img_name = rgb_img_path.split('\\')[-1]
-    fused_img_filename = SAVE_DIR+'projected/'+img_name
-    pcd_filename = SAVE_DIR+"painted_cloud/"+img_name.split('.')[0]+".pcd"
-
-    rgb_img = parse_img(rgb_img_path)
-    segmented_img = parse_img(seg_img_path)
-        
-    # segmented_img, semantic_labels = semantic_segment_rgb(model, rgb_img)
-    pointPainting(projection_matrix, point_cloud, rgb_img, segmented_img, None, fused_img_filename, pcd_filename)

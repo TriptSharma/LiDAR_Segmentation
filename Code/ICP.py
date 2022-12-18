@@ -20,7 +20,7 @@ def parse_velo_scans(data_dir):
 
     # Read field using numpy array
     # TODO: parse all files instead of only first 1000
-    pcd_data_np = [np.fromfile(pcd, dtype=np.float32).reshape((-1, 4))[:,:3] for pcd in pcd_paths[:200]]
+    pcd_data_np = [np.fromfile(pcd, dtype=np.float32).reshape((-1, 4))[:,:3] for pcd in pcd_paths]
     # print(pcd_data_np)
 
     return pcd_data_np
@@ -30,7 +30,7 @@ def np_to_o3d(np_pcd):
     #! o3d takes array of size (N,3)
     o3d_pcd = [o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points)) for points in np_pcd]
     # print(o3d_pcd[0].points)
-
+    return o3d_pcd
 
 def downsample_pcds(pcd_list, voxel_size=0.05): 
     '''
