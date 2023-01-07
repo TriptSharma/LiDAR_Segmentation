@@ -6,11 +6,16 @@ import open3d as o3d
 import cv2
 
 def cam_calib(filename):
-    
+    pass
 
-def P_matrix_lidar_to_cam(filename):
+def calibration_data(filename):
     '''
-    Import and parse Lidar to camera projection matrix from file
+    Import and parse calibration data including:
+        P: Projection matrix from cam to lidar
+        K: camera intrinsic matrix (3x3)
+        R0: rectified rotation matrix (3x3)
+        Tr_cam_to_lidar: camera to lidar transformation matrix (3x4)
+        D: cam distortion values
     Inputs:
         filename: Flie containing data in KITTI dataset calibration file
         '''
@@ -20,15 +25,51 @@ def P_matrix_lidar_to_cam(filename):
         # if counter==1:
         # elif counter==2:
         #     t= f.readline()
-    R = (text.split('\n')[1].split(':')[-1].split())
-    t = text.split('\n')[2].split(':')[-1].split()
 
-    R = np.array(R, dtype=np.float32).reshape((3,3))
-    t = np.array(t, dtype=np.float32).reshape((3,1))
+    calibration_data = {}
+    for line in text.split('\n'):
+        key, val = line.split(':')
+        calibration_data[key] = val.lstrip().split()
+    
+    # t = text.split('\n')[2].split(':')[-1].split()
 
-    return np.hstack([R,t])
+    # R = np.array(R, dtype=np.float32).reshape((3,3))
+    # t = np.array(t, dtype=np.float32).reshape((3,1))
 
+    return calibration_data
 
+def P_matrix_lidar_to_cam(calibration_data):
+    '''
+    Returns projection matrix for projection of lidar to cam. 
+    To convert points from Lidar to cam frame we will first transform the points to cam frame using P^-1 and R^-1
+    Then project them in 2D space using P^-1
+
+    NOTE: KITTI has a ref cam (i.e. cam 0), first project lidar to ref cam then ref cam to cam
+
+    i.e. P_lidar2ref = Tr inverse @ Rect matrix (ref cam)
+         P_ref2cam = P @ Rect matrix @ P_lidar2ref
+
+    where,
+        P = projection matrix from ref cam to current cam (3,4)
+        R = rectification matrix for cam 0 (3,3)
+        Tr = transformation between ref cam to lidar (3,4)
+    Input: 
+        calibration_data: dict containing all calib info
+    Output:
+        P_lidar2cam = (3,4)
+    '''
+    P =  np.array(calibration_data['P'], dtype=np.float32).reshape(3,4)
+    R0 = np.array(calibration_data['R0'], dtype=np.float32).reshape(3,3)    #Rectificattion matrix for cam 0 (ref cam)
+    Tr = np.array(calibration_data['Tr_cam_to_lidar'], dtype=np.float32).reshape(3,4)
+
+    R0_expanded = np.eye(4)
+    R0_expanded[:3,:3] = R0
+    R_l2ref = np.linalg.inv(R0_expanded)
+
+    Tr_ref2lidar = np.vstack([(Tr), [0,0,0,1]])
+    Tr_lidar2ref = np.linalg.inv(Tr_ref2lidar)
+
+    return P @ R0_expanded @ Tr_lidar2ref
 
 def project_lid_to_cam(P,lidar_pts):
     """
@@ -120,9 +161,9 @@ def pointPainting(projection_matrix_lidar_to_cam, point_cloud, rgb_img, segmente
         cv2.circle(fused_img, pt, 5, color=tuple(map(int, segmented_img[y,x])), thickness=-1)        
     stacked_img = np.vstack((fused_img, segmented_img, rgb_img))
 
-    cv2.imshow('fuse', stacked_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('fuse', stacked_img)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     # cv2.imwrite(fused_img_filename,stacked_img)
 
@@ -155,9 +196,6 @@ def visuallize_pointcloud(pointcloud, filename):
     
         pcd.points = o3d.utility.Vector3dVector(xyz)
         pcd.colors = o3d.utility.Vector3dVector(colors)
-        o3d.visualization.draw_geometries([pcd])
+        # o3d.visualization.draw_geometries([pcd])
         o3d.io.write_point_cloud(filename,pcd)
 
-
-# model = torchvision.models.segmentation.fcn_resnet101()
-# model.eval()

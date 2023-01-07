@@ -2,3 +2,5 @@ calibration/*
 *.zip
 KITTI-360/
 results/
+*.pth
+*.pyc

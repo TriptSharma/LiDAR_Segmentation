@@ -3,8 +3,9 @@ from SemanticSegmentation import get_img_paths, parse_img
 from ICP import *
 import argparse
 
-CAM_2_VELO_CALIB_DATA_DIR = 'KITTI-360/KITTI-Small/2011_09_26/'
-CAM_CALIB_DATA_DIR = 'KITTI-360/KITTI-Small/'
+# CAM_2_VELO_CALIB_DATA_DIR = 'KITTI-360/KITTI-Small/2011_09_26/'
+# CAM_CALIB_DATA_DIR = 'KITTI-360/KITTI-Small/'
+CALIB_DATA_DIR = 'KITTI-360/'
 PCD_DATA_DIR = 'KITTI-360/KITTI-Small/2011_09_26/2011_09_26_drive_0001_sync/velodyne_points/data/'
 RGB_DATA_DIR = 'KITTI-360/KITTI-Small/2011_09_26/2011_09_26_drive_0001_sync/image_02/data/'
 SAVE_DIR = 'results/'
@@ -23,8 +24,10 @@ save_dir = args.save_data_path
 SEGMENTED_DATA_DIR = save_dir+'segmented_image/'
 COLORED_PCD_DATA_DIR = save_dir+'painted_cloud/'
 
-projection_matrix = P_matrix_lidar_to_cam(calib_dir+'calib_velo_to_cam.txt')     # size (3,4)
-# print(projection_matrix)
+calibration_data = calibration_data(calib_dir+'calib.txt')     # size (3,4)
+print(calibration_data)
+
+projection_matrix = P_matrix_lidar_to_cam(calibration_data)
 
 pcds = get_pcds_np(pcd_dir)
 
@@ -43,20 +46,20 @@ for point_cloud, rgb_img_path, seg_img_path in zip(pcds, rgb_paths, seg_paths):
     # segmented_img, semantic_labels = semantic_segment_rgb(model, rgb_img)
     pointPainting(projection_matrix, point_cloud, rgb_img, segmented_img, None, fused_img_filename, pcd_filename)
 
-# print('All .pcds have been saved successfully\n')
-# print('Performing ICP')
+print('All .pcds have been saved successfully\n')
+print('Performing ICP')
 
 
 
-# pcds = get_pcds(COLORED_PCD_DATA_DIR,downsample=True)
+pcds = get_pcds(COLORED_PCD_DATA_DIR,downsample=True)
 
 # o3d.visualization.draw_geometries([pcds[0]])
 
-# transformed_pcds = merge_pcd(pcds)
+transformed_pcds = merge_pcd(pcds)
 
-# #visualize all point clouds
-# pcd_combined = o3d.geometry.PointCloud()
-# for point_id in range(len(transformed_pcds)):
-#     pcd_combined += transformed_pcds[point_id]
+#visualize all point clouds
+pcd_combined = o3d.geometry.PointCloud()
+for point_id in range(len(transformed_pcds)):
+    pcd_combined += transformed_pcds[point_id]
 
-# o3d.visualization.draw_geometries([pcd_combined])
+o3d.visualization.draw_geometries([pcd_combined])
