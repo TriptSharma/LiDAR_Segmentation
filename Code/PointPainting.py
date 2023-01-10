@@ -161,11 +161,11 @@ def pointPainting(projection_matrix_lidar_to_cam, point_cloud, rgb_img, segmente
         cv2.circle(fused_img, pt, 5, color=tuple(map(int, segmented_img[y,x])), thickness=-1)        
     stacked_img = np.vstack((fused_img, segmented_img, rgb_img))
 
-    # cv2.imshow('fuse', stacked_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    cv2.imshow('fuse', stacked_img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-    # cv2.imwrite(fused_img_filename,stacked_img)
+    cv2.imwrite(fused_img_filename,stacked_img)
 
     painted_pointcloud = np.hstack((pts_3D_img[:,:3], semantic_color))
 
@@ -196,6 +196,6 @@ def visuallize_pointcloud(pointcloud, filename):
     
         pcd.points = o3d.utility.Vector3dVector(xyz)
         pcd.colors = o3d.utility.Vector3dVector(colors)
-        # o3d.visualization.draw_geometries([pcd])
+        o3d.visualization.draw_geometries([pcd])
         o3d.io.write_point_cloud(filename,pcd)
 
