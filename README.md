@@ -2,6 +2,16 @@
 
 Build a map from raw LIDAR point cloud and then transfer the predicted semantic labels from the camera image onto the LIDAR point cloud.
 
+
+![Top: Segmented Lidar points projected onto RGB image Middle: Segmenation Result Bottom: RGB Image](fused.png)
+In the above figure:
+
+    - Top: Segmented Lidar points projected onto RGB image 
+    - Middle: Segmenation Result 
+    - Bottom: RGB Image
+
+![Semantic Point Cloud](pcd.png)
+The above figure represents the Semantic Point Cloud
 ## How to run
 
 ```python3 Wrapper.py```
